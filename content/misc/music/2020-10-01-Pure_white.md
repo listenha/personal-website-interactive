@@ -1,9 +1,10 @@
 ---
 title: "Pure White"
 date: 2020-10-01
-memory: "A quiet evening after finishing a challenging project. The rain was gently tapping against the window, and I felt a sense of accomplishment mixed with tranquility. This piece always reminds me of peaceful moments and reflection."
+memory: "Grassland Music Festival 2020, Haining"
 tags: ["Performance"]
 videoUrl: "https://youtu.be/KFfiJhw4q9o"
+thumbnail: "purewhite-thumbnail.jpg"
 duration: "6:36"
 ---
 

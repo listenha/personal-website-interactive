@@ -1,10 +1,11 @@
 ---
 title: "Northern Light"
-date: 2024-12-06
-memory: "A quiet evening after finishing a challenging project. The rain was gently tapping against the window, and I felt a sense of accomplishment mixed with tranquility. This piece always reminds me of peaceful moments and reflection."
+date: 2025-10-12
+memory: "In memory of the aurora 2025-11-12 at Champaign Salt Fork River Preserve, A Toccata Improvisation"
 tags: []
 videoUrl: "https://youtube.com/shorts/ZwwWBSCqFI8"
-duration: ""
+thumbnail: "aurora-thumbnail.jpg"
+duration: "2:11"
 ---
 
 This is a sample music entry. Replace this with your actual recordings and memories.

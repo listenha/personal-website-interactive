@@ -14,48 +14,87 @@ interface VideoCardProps {
 export default function VideoCard({ entry, timelineOrientation = "vertical", isLast = false }: VideoCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFullMemory, setShowFullMemory] = useState(false);
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(
-    entry.thumbnail ? getThumbnailUrl(entry.thumbnail) : null
+  
+  // Check if it's a YouTube video first
+  const isYouTubeVideo = entry.videoUrl && (entry.videoUrl.includes("youtube.com") || entry.videoUrl.includes("youtu.be"));
+  
+  // Get YouTube thumbnail URL if it's a YouTube video
+  const getYouTubeThumbnail = (url: string): string | null => {
+    if (!url) return null;
+    
+    let videoId: string | null = null;
+    
+    // youtube.com/watch?v=VIDEO_ID
+    const watchMatch = url.match(/youtube\.com\/watch\?v=([^&\n?#]+)/);
+    if (watchMatch) {
+      videoId = watchMatch[1];
+    }
+    
+    // youtu.be/VIDEO_ID
+    if (!videoId) {
+      const shortMatch = url.match(/youtu\.be\/([^&\n?#]+)/);
+      if (shortMatch) {
+        videoId = shortMatch[1];
+      }
+    }
+    
+    // youtube.com/shorts/VIDEO_ID
+    if (!videoId) {
+      const shortsMatch = url.match(/youtube\.com\/shorts\/([^&\n?#]+)/);
+      if (shortsMatch) {
+        videoId = shortsMatch[1];
+      }
+    }
+    
+    if (videoId) {
+      return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    }
+    
+    return null;
+  };
+  
+  const youtubeThumbnail = entry.videoUrl ? getYouTubeThumbnail(entry.videoUrl) : null;
+  
+  // Priority: custom thumbnail > YouTube thumbnail > null
+  const initialThumbnail = entry.thumbnail 
+    ? getThumbnailUrl(entry.thumbnail) 
+    : youtubeThumbnail || null;
+  
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(initialThumbnail);
+  const [customThumbnailFailed, setCustomThumbnailFailed] = useState(false);
+  const [useVideoAsThumbnail, setUseVideoAsThumbnail] = useState(
+    !entry.thumbnail && !youtubeThumbnail && !isYouTubeVideo
   );
-  const [useVideoAsThumbnail, setUseVideoAsThumbnail] = useState(!entry.thumbnail);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const memoryExcerpt = entry.memory.length > 150 ? entry.memory.substring(0, 150) + "..." : entry.memory;
   const videoUrl = entry.videoUrl ? getVideoUrl(entry.videoUrl) : null;
 
-  // Get YouTube thumbnail if it's a YouTube URL
-  const getYouTubeThumbnail = (url: string): string | null => {
-    if (!url) return null;
-    
-    // Check if it's a YouTube URL
-    const youtubePattern = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/;
-    const match = url.match(youtubePattern);
-    
-    if (match) {
-      const videoId = match[1];
-      return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-    }
-    
-    return null;
-  };
-
-  // Determine final thumbnail URL
-  const youtubeThumbnail = getYouTubeThumbnail(entry.videoUrl);
+  // Determine final thumbnail URL (custom thumbnail takes priority)
   const finalThumbnailUrl = entry.thumbnail 
     ? getThumbnailUrl(entry.thumbnail) 
     : youtubeThumbnail || thumbnailUrl;
-  
-  // Check if it's a YouTube video (don't try to extract frame from YouTube)
-  const isYouTubeVideo = entry.videoUrl && (entry.videoUrl.includes("youtube.com") || entry.videoUrl.includes("youtu.be"));
 
-  // Use YouTube thumbnail if available
+
+  // Ensure thumbnail is set correctly (custom > YouTube > video frame)
   useEffect(() => {
-    if (youtubeThumbnail && !entry.thumbnail) {
+    if (entry.thumbnail) {
+      // Custom thumbnail is set, use it
+      const customUrl = getThumbnailUrl(entry.thumbnail);
+      if (thumbnailUrl !== customUrl) {
+        setThumbnailUrl(customUrl);
+        setUseVideoAsThumbnail(false);
+      }
+    } else if (youtubeThumbnail && thumbnailUrl !== youtubeThumbnail) {
+      // Fallback to YouTube thumbnail if no custom thumbnail
       setThumbnailUrl(youtubeThumbnail);
       setUseVideoAsThumbnail(false);
+    } else if (isYouTubeVideo) {
+      // For YouTube videos, never use video as thumbnail
+      setUseVideoAsThumbnail(false);
     }
-  }, [youtubeThumbnail, entry.thumbnail]);
+  }, [entry.thumbnail, youtubeThumbnail, isYouTubeVideo, thumbnailUrl]);
 
   // Extract first frame from video if no thumbnail is provided (only for non-YouTube videos)
   useEffect(() => {
@@ -145,51 +184,100 @@ export default function VideoCard({ entry, timelineOrientation = "vertical", isL
 
           {/* Thumbnail */}
           <div
-            className="relative w-full h-48 mb-4 rounded-lg overflow-hidden cursor-pointer bg-gray-100 dark:bg-gray-700"
+            className="relative w-full h-48 mb-4 rounded-lg overflow-hidden cursor-pointer"
+            style={{ backgroundColor: '#f3f4f6' }}
             onClick={() => setIsExpanded(true)}
           >
             {/* Canvas for frame extraction (hidden) */}
-            {!entry.thumbnail && entry.videoUrl && (
+            {!entry.thumbnail && entry.videoUrl && !isYouTubeVideo && (
               <canvas ref={canvasRef} className="hidden" />
             )}
             
-            {/* Show video as thumbnail if no thumbnail image is available (only for non-YouTube) */}
-            {useVideoAsThumbnail && videoUrl && !isYouTubeVideo ? (
-              <video
-                ref={videoRef}
-                src={videoUrl}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                preload="metadata"
-                muted
-                playsInline
-                onLoadedMetadata={(e) => {
-                  const video = e.currentTarget;
-                  if (video.duration > 0) {
-                    video.currentTime = Math.min(0.1, video.duration * 0.1);
-                  }
-                }}
-              />
-            ) : finalThumbnailUrl ? (
-              <img
-                src={finalThumbnailUrl}
-                alt={entry.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                onError={() => {
-                  // Fallback to video if image fails (only for non-YouTube)
-                  if (!isYouTubeVideo) {
-                    setThumbnailUrl(null);
-                    setUseVideoAsThumbnail(true);
-                  }
-                }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900 dark:to-amber-800">
-                <svg className="w-16 h-16 text-amber-400 dark:text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+            {/* Priority: 1. Custom thumbnail, 2. YouTube thumbnail, 3. Video as thumbnail (non-YouTube only) */}
+            {(() => {
+              // Custom thumbnail (highest priority) - but skip if it failed before
+              if (entry.thumbnail && finalThumbnailUrl && !customThumbnailFailed) {
+                return (
+                  <img
+                    key={`custom-${entry.thumbnail}`}
+                    src={finalThumbnailUrl}
+                    alt={entry.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    style={{ 
+                      display: 'block',
+                      position: 'relative',
+                      zIndex: 0,
+                      minHeight: '100%',
+                      minWidth: '100%'
+                    }}
+                    onError={(e) => {
+                      // Mark custom thumbnail as failed and fallback to YouTube
+                      setCustomThumbnailFailed(true);
+                      if (youtubeThumbnail) {
+                        setThumbnailUrl(youtubeThumbnail);
+                      } else if (!isYouTubeVideo && videoUrl) {
+                        setThumbnailUrl(null);
+                        setUseVideoAsThumbnail(true);
+                      }
+                    }}
+                    crossOrigin="anonymous"
+                    loading="eager"
+                  />
+                );
+              }
+              
+              // YouTube thumbnail (fallback)
+              if (youtubeThumbnail && (customThumbnailFailed || !entry.thumbnail)) {
+                return (
+                  <img
+                    key={`youtube-${entry.videoUrl}`}
+                    src={youtubeThumbnail}
+                    alt={entry.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-0"
+                    style={{ display: 'block' }}
+                    onError={(e) => {
+                      // Fallback to hqdefault if maxresdefault fails
+                      const videoId = entry.videoUrl?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/)?.[1];
+                      if (videoId) {
+                        const fallbackUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                        setThumbnailUrl(fallbackUrl);
+                      }
+                    }}
+                  />
+                );
+              }
+              
+              // Video as thumbnail (only for non-YouTube)
+              if (useVideoAsThumbnail && videoUrl && !isYouTubeVideo) {
+                return (
+                  <video
+                    ref={videoRef}
+                    src={videoUrl}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-0"
+                    preload="metadata"
+                    muted
+                    playsInline
+                    onLoadedMetadata={(e) => {
+                      const video = e.currentTarget;
+                      if (video.duration > 0) {
+                        video.currentTime = Math.min(0.1, video.duration * 0.1);
+                      }
+                    }}
+                  />
+                );
+              }
+              
+              // Placeholder
+              return (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900 dark:to-amber-800 relative z-0">
+                  <svg className="w-16 h-16 text-amber-400 dark:text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              );
+            })()}
+            {/* Hover overlay - must be above the image but below interactive elements */}
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center pointer-events-none z-10" style={{ backgroundColor: 'transparent' }}>
               <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <svg className="w-8 h-8 text-amber-600 ml-1" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
@@ -227,17 +315,6 @@ export default function VideoCard({ entry, timelineOrientation = "vertical", isL
             </div>
           )}
 
-          {/* Play button */}
-          <button
-            onClick={() => setIsExpanded(true)}
-            className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            Play Recording
-            {entry.duration && <span className="text-sm opacity-90">({entry.duration})</span>}
-          </button>
         </div>
       </div>
 

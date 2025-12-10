@@ -1,4 +1,5 @@
 import Sidebar from "@/components/layout/Sidebar";
+import FeatureIntro from "@/components/home/FeatureIntro";
 import { siteConfig } from "@/data/siteConfig";
 import fs from "fs";
 import path from "path";
@@ -47,6 +48,7 @@ export default async function AboutPage() {
               className="page__content prose prose-lg dark:prose-invert max-w-none text-black dark:text-gray-300"
               dangerouslySetInnerHTML={{ __html: htmlContent }}
             />
+            <FeatureIntro />
           </article>
         </div>
       </div>

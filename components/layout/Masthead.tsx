@@ -3,11 +3,34 @@
 import Link from "next/link";
 import { siteConfig } from "@/data/siteConfig";
 import { navigation, NavItem } from "@/data/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Masthead() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [clickedDropdown, setClickedDropdown] = useState<string | null>(null);
+  const dropdownRefs = useRef<{ [key: string]: HTMLLIElement | null }>({});
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openDropdown) {
+        const dropdownElement = dropdownRefs.current[openDropdown];
+        if (dropdownElement && !dropdownElement.contains(event.target as Node)) {
+          setOpenDropdown(null);
+          setClickedDropdown(null);
+        }
+      }
+    };
+
+    if (openDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openDropdown]);
 
   return (
     <div className="masthead bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
@@ -51,14 +74,39 @@ export default function Masthead() {
                 <li
                   key={item.title}
                   className="masthead__menu-item relative"
-                  onMouseEnter={() => item.children && setOpenDropdown(item.title)}
-                  onMouseLeave={() => setOpenDropdown(null)}
+                  ref={(el) => {
+                    if (item.children) {
+                      dropdownRefs.current[item.title] = el;
+                    }
+                  }}
+                  // onMouseEnter={() => {
+                  //   // Only open on hover if not clicked
+                  //   if (item.children && clickedDropdown !== item.title) {
+                  //     setOpenDropdown(item.title);
+                  //   }
+                  // }}
+                  // onMouseLeave={() => {
+                  //   // Only close on hover if not clicked
+                  //   if (clickedDropdown !== item.title) {
+                  //     setOpenDropdown(null);
+                  //   }
+                  // }}
                 >
                   {item.children ? (
                     <>
                       <button
                         className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1"
-                        onClick={() => setOpenDropdown(openDropdown === item.title ? null : item.title)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const isCurrentlyOpen = openDropdown === item.title;
+                          if (isCurrentlyOpen) {
+                            setOpenDropdown(null);
+                            setClickedDropdown(null);
+                          } else {
+                            setOpenDropdown(item.title);
+                            setClickedDropdown(item.title);
+                          }
+                        }}
                       >
                         {item.title}
                         <svg
@@ -79,7 +127,10 @@ export default function Masthead() {
                               <Link
                                 href={child.url || "#"}
                                 className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                onClick={() => setOpenDropdown(null)}
+                                onClick={() => {
+                                  setOpenDropdown(null);
+                                  setClickedDropdown(null);
+                                }}
                               >
                                 {child.title}
                               </Link>
