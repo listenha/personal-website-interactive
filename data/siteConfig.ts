@@ -92,6 +92,7 @@ export const siteConfig: SiteConfig = {
     books: { title: "Books" },
     manuscripts: { title: "Journal Articles" },
     conferences: { title: "Conference Papers" },
+    preprints: { title: "Preprints" },
   },
   wordsPerMinute: 160,
 };
