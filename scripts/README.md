@@ -74,3 +74,7 @@ Errors: 0
 - Images that are already optimized are **skipped**
 - The script is **safe to run multiple times**
 
+
+
+
+
