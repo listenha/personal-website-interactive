@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { siteConfig } from "@/data/siteConfig";
-import { FaLocationDot, FaEnvelope, FaGithub, FaLinkedin, FaXTwitter } from "react-icons/fa6";
+import { FaLocationDot, FaEnvelope, FaGithub, FaLinkedin, FaXTwitter, FaBuildingColumns } from "react-icons/fa6";
 
 interface SidebarProps {
   showAuthorProfile?: boolean;
@@ -75,10 +75,27 @@ export default function Sidebar({ showAuthorProfile = true }: SidebarProps) {
                 </a>
               </li>
             )}
+            {author.school && (
+              <li>
+                <a
+                  href={author.school}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline text-sm flex items-center"
+                >
+                  <FaBuildingColumns className="mr-2" aria-hidden="true" />
+                  School
+                </a>
+              </li>
+            )}
             {author.linkedin && (
               <li>
                 <a
-                  href={`https://www.linkedin.com/in/${author.linkedin}`}
+                  href={
+                    author.linkedin.startsWith("http")
+                      ? author.linkedin
+                      : `https://www.linkedin.com/in/${author.linkedin}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 dark:text-blue-400 hover:underline text-sm flex items-center"

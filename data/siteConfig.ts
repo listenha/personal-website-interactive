@@ -5,6 +5,7 @@ export interface Author {
   bio?: string;
   location?: string;
   employer?: string;
+  school?: string;
   uri?: string;
   email?: string;
   // Academic websites
@@ -77,16 +78,18 @@ export const siteConfig: SiteConfig = {
   title: "Yueshen Li / Homepage",
   titleSeparator: "-",
   name: "Yueshen Li",
-  description: "Yueshen Li's academic portfolio",
-  url: "https://listenha.github.io",
+  description: "Yueshen Li | MSCS at UIUC | Human-AI Interaction, LLM Reasoning, Social Computing",
+  url: "https://yueshen-li.vercel.app",
   baseurl: "",
   author: {
     avatar: "profile.png",
     name: "Yueshen Li",
     bio: "MSCS Student, UIUC",
     location: "Champaign, IL",
+    school: "https://siebelschool.illinois.edu/",
     email: "yueshen7@illinois.edu",
     github: "https://github.com/listenha",
+    linkedin: "yueshen-li-b36b04251",
   },
   publicationCategory: {
     books: { title: "Books" },

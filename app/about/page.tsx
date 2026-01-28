@@ -8,7 +8,7 @@ import { remark } from "remark";
 import html from "remark-html";
 
 export const metadata = {
-  title: `About - ${siteConfig.title}`,
+  title: `${siteConfig.name} | About`,
   description: siteConfig.description,
 };
 
