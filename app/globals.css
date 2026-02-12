@@ -21,11 +21,11 @@ body {
 
 /* Prose styles for markdown content */
 .prose {
-  color: rgb(0 0 0) !important;
+  color: var(--color-foreground);
 }
 
 .dark .prose {
-  color: rgb(209 213 219);
+  color: var(--color-foreground-dark);
 }
 
 .prose h1 {
