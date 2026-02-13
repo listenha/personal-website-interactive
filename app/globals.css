@@ -24,8 +24,10 @@ body {
   color: var(--color-foreground);
 }
 
-.dark .prose {
-  color: var(--color-foreground-dark);
+@media (prefers-color-scheme: dark) {
+  .prose {
+    color: var(--color-foreground-dark);
+  }
 }
 
 .prose h1 {
@@ -35,8 +37,10 @@ body {
   color: rgb(17 24 39);
 }
 
-.dark .prose h1 {
-  color: rgb(255 255 255);
+@media (prefers-color-scheme: dark) {
+  .prose h1 {
+    color: rgb(255 255 255);
+  }
 }
 
 .prose h2 {
@@ -47,8 +51,10 @@ body {
   color: rgb(17 24 39);
 }
 
-.dark .prose h2 {
-  color: rgb(255 255 255);
+@media (prefers-color-scheme: dark) {
+  .prose h2 {
+    color: rgb(255 255 255);
+  }
 }
 
 .prose h3 {
@@ -59,8 +65,10 @@ body {
   color: rgb(17 24 39);
 }
 
-.dark .prose h3 {
-  color: rgb(255 255 255);
+@media (prefers-color-scheme: dark) {
+  .prose h3 {
+    color: rgb(255 255 255);
+  }
 }
 
 .prose p {
@@ -92,8 +100,10 @@ body {
   text-decoration: underline;
 }
 
-.dark .prose a {
-  color: rgb(96 165 250);
+@media (prefers-color-scheme: dark) {
+  .prose a {
+    color: rgb(96 165 250);
+  }
 }
 
 .prose a:hover {
@@ -115,8 +125,10 @@ body {
   font-size: 0.875rem;
 }
 
-.dark .prose code {
-  background-color: rgb(31 41 55);
+@media (prefers-color-scheme: dark) {
+  .prose code {
+    background-color: rgb(31 41 55);
+  }
 }
 
 .prose pre {
@@ -127,8 +139,10 @@ body {
   overflow-x: auto;
 }
 
-.dark .prose pre {
-  background-color: rgb(31 41 55);
+@media (prefers-color-scheme: dark) {
+  .prose pre {
+    background-color: rgb(31 41 55);
+  }
 }
 
 .prose blockquote {
@@ -138,6 +152,8 @@ body {
   margin: 1rem 0;
 }
 
-.dark .prose blockquote {
-  border-left-color: rgb(75 85 99);
+@media (prefers-color-scheme: dark) {
+  .prose blockquote {
+    border-left-color: rgb(75 85 99);
+  }
 }
